@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <input type="number" min="1" v-model="tickets" /> Ticket(s)
+    <img src="@/assets/theatrecamp.jpg" />
+    <h1>Theatre Camp 2020 Payment</h1>
+    <input type="number" min="1" v-model="campers" /> camper(s)
     <h2>Total: ${{ total }}</h2>
     <label>First Name:</label>
     <input type="text" v-model="firstname" />
@@ -36,8 +38,8 @@
 import axios from "axios";
 
 // eslint-disable-next-line no-undef
-let stripe = Stripe('pk_test_wgPmrDXSBM6AamX7WP2VqBjq00wuxOvppL')
-// let stripe = Stripe("pk_live_fIxJlqxQbJRICEasZvxs2QK600EmFoZAiO");
+let stripe = Stripe("pk_live_fIxJlqxQbJRICEasZvxs2QK600EmFoZAiO");
+// let stripe = Stripe('pk_test_wgPmrDXSBM6AamX7WP2VqBjq00wuxOvppL')
 let elements = stripe.elements();
 let card = undefined;
 
@@ -45,7 +47,7 @@ export default {
   name: 'App',
   data: () => {
     return {
-      tickets: 1,
+      campers: 1,
       firstname: "",
       lastname: "",
       email: "",
@@ -55,7 +57,11 @@ export default {
   },
   computed: {
     total() {
-      return this.tickets * 10;
+      const today = Date.now();
+      const earlybird = Date.parse('2020-05-01');
+      let cost = 185;
+      if (today < earlybird) cost = 175;
+      return this.campers * cost;
     }
   },
   methods: {
@@ -70,8 +76,8 @@ export default {
           this.showPurchase = true;
         } else {
           let data = {
-            description: "Spring Spec 2020",
-            tickets: this.tickets,
+            description: "Theatre Camp 2020",
+            campers: this.campers,
             paymentMethodId: result.paymentMethod.id
           };
           axios
@@ -89,29 +95,27 @@ export default {
                   let paymentIntent = result.paymentIntent;
                   if (paymentIntent.id) {
                     let html = "<html><body>";
-                    html += "<h1>Spring Spec Tickets</h1>";
+                    html += "<h1>Theatre Camp 2020</h1>";
                     html +=
                       "<p>Thank you for your order and supporting Covenant Fine Arts!</p>";
-                    html += "<h2>Your tickets:</h2><ul>";
-                    html += `<li>Friday, March 13 tickets: ${_this.tickets}</li>`;
+                    html += "<h2>Your Payment:</h2><ul>";
+                    html += `<li>${_this.campers} camper(s) for Theatre Camp 2020</li>`;
                     html += "</ul>";
-                    html +=
-                      "<p>Performance at Chapel Rock Christian Church at 7pm.</p>";
                     html += "</body></html>";
 
                     data = {
                       firstname: _this.firstname,
                       lastname: _this.lastname,
                       email: _this.email,
-                      tickets: _this.tickets,
+                      campers: _this.campers,
                       transaction: paymentIntent.id,
                       amount: _this.total,
-                      description: "Spring Spec Tickets",
+                      description: "Theatre Camp 2020",
                       html: html
                     };
                     axios
                       .post(
-                        "https://us-central1-my-covenant.cloudfunctions.net/specTickets",
+                        "https://us-central1-my-covenant.cloudfunctions.net/theatreCamp",
                         { data }
                       )
                       .then(result => {
